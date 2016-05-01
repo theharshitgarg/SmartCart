@@ -4,6 +4,9 @@ var path = require('path');
 var express = require('express');
 var bodyParser = require('body-parser');
 var mysql      = require('mysql');
+var csvParser = require('csv-parse');
+var fs = require('fs');
+var json2csv = require('json2csv');
 
 
 var connection;
@@ -48,7 +51,7 @@ app.get('/history', function(req, res) {
 app.get('/fetch_history', function(req, res) 
 {
 	createDBConnection();
-	connection.query('select one.product_id, one.product_name, three.vendor_id, two.product_cat_type, one.product_price,  three.date from product one , product_category two, transaction three where one.product_cat_id = two.product_cat_id and three.item_id = one.product_id;', 
+	connection.query('select one.product_id, one.product_name, three.vendor_id, two.product_cat_type, one.product_price, three.quantity ,three.location,  three.date from product one , product_category two, transaction three where one.product_cat_id = two.product_cat_id and three.item_id = one.product_id;', 
 		function(err, rows, fields) 
 		{
 			if (err)
@@ -66,6 +69,7 @@ app.get('/fetch_history', function(req, res)
 
 app.get('/fetch_product_list', function(req, res) 
 {
+	getSimilarity();
 	createDBConnection();
 	connection.query('select product_id,product_name from product;',
 		function(err, rows, fields) 
@@ -88,7 +92,7 @@ app.post('/add-transaction', function(req, res)
 	var json = req.body.values;
 	
 	var tmp = JSON.parse(json);
-	console.log(tmp);
+	//console.log(tmp);
 
 	var date = new Date();
 	date = date.getUTCFullYear() + '-' +
@@ -105,7 +109,7 @@ app.post('/add-transaction', function(req, res)
 	for (i = 0; i < tmp.data.length; i++) 
 	{
 		d = tmp.data[i];
-		console.log(d.product_id + ' ' + d.quantity);
+		//console.log(d.product_id + ' ' + d.quantity);
 		connection.query("INSERT INTO transaction(item_id,vendor_id,quantity,location,date) VALUES ( '"+d.product_id+"','A','"+d.quantity+"','Bangalore','"+date+"');", 
 			function (err, result) {  
 			});
@@ -152,4 +156,98 @@ else
 	// console.log('Server Started %s:%s', host, port);
 });
 
+
+
+function getSimilarity()
+{
+
+	createDBConnection();
+
+	// connection.query("select one.product_id, one.product_name,two.product_cat_type, one.product_price, three.quantity, "+
+	// 	" (one.product_price * three.quantity ) as `Total`, three.date "+
+	// 	" from `test_schema`.`product` one , `test_schema`.`product_category` two, `test_schema`.`transaction` three "+
+	// 	" where one.product_cat_id = two.product_cat_id "+
+	// 	" and three.item_id = one.product_id "+
+	// 	" INTO OUTFILE '127.0.0.1:8081/csv/transactions-data.csv' "+
+	// 	" FIELDS ENCLOSED BY ''  "+
+	// 	" TERMINATED BY ';'  "+
+	// 	" ESCAPED BY ' '  "+
+	// 	" LINES TERMINATED BY '\r\n'",
+
+	// 	function(err, rows, fields) 
+	// 	{
+	// 		if (err)
+	// 		{
+	// 			console.log('Error while performing Query.');
+	// 		//connection.end();
+	// 		}	
+	// 	});
+
+	connection.query("select one.product_id, one.product_name,two.product_cat_type, one.product_price, three.quantity, "+
+		" (one.product_price * three.quantity ) as `Total`, three.date "+
+		" from `test_schema`.`product` one , `test_schema`.`product_category` two, `test_schema`.`transaction` three "+
+		" where one.product_cat_id = two.product_cat_id "+
+		" and three.item_id = one.product_id ",
+		function(err, rows, fields) 
+		{
+			if (err)
+			{
+				console.log('Error while performing Query.');
+			//connection.end();
+			}	
+
+			var string = '{"data" : '+ JSON.stringify(rows) +' }';
+
+			console.log(string);
+
+			  fs.writeFile('dummy.json', string , function(err) {
+			    if (err) throw err;
+			    console.log('file saved');
+			  });
+			
+
+
+		});
+
+
+		
+
+	
+// 	var query = connection.query("select one.product_id, one.product_name,two.product_cat_type, one.product_price, three.quantity, "+
+// 		" (one.product_price * three.quantity ) as `Total`, three.date "+
+// 		" from `test_schema`.`product` one , `test_schema`.`product_category` two, `test_schema`.`transaction` three "+
+// 		" where one.product_cat_id = two.product_cat_id "+
+// 		" and three.item_id = one.product_id ");
+
+// 	query
+// 	.on('error', function(err) {
+//     	// do something when an error happens
+// 	})
+// 	.on('fields', function(fields) {
+// 		processRow(fields);
+// 	})
+
+// 	.on('result', function(row) 
+// 	{
+//    // Pausing the connnection is useful if your processing involves I/O
+//    	connection.pause();
+//    	processRow(row, function (err) 
+//    	{
+//    		connection.resume();
+//    	});
+// 	})
+// 	.on('end', function() {
+
+//     
+
+// });
+	
+	destroyDBConnection();
+}
+
+function processRow (row) {
+		fs.appendFile('data.csv', row.join(';'), function (err) {
+			connection.resume();
+		});
+	}
 

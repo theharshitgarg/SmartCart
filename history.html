@@ -48,7 +48,7 @@
 
     <div class="row">
 
-      <div class="col-md-8">
+      <div class="col-md-12">
         <p class="lead">History</p>
 
         <div id="loadHistory">                
@@ -91,7 +91,7 @@
 
   function loadUserHistory()
   {
-     var string =  "<table class='table table-hover table-striped table-responsive'> <tr> <th>Product id</th> <th>Product</th> <th>Vendor</th> <th>Category</th> <th>Price</th> <th>Date</th> </tr>";
+     var string =  "<table class='table table-hover table-striped table-responsive'> <tr> <th>Product id</th> <th>Product</th> <th>Vendor</th> <th>Category</th> <th>Price</th> <th>Quantity </th> <th>Total</th>  <th>Location </th>  <th>Date</th> </tr>";
 
     $.get('/fetch_history').then(function(d) {
        jQuery.each(d, function(i, val) {
@@ -101,7 +101,10 @@
         string+= "<td>" + val['vendor_id'] + "</td>";
         string+= "<td>" + val['product_cat_type'] + "</td>";
         string+= "<td>" + val['product_price'] + "</td>";
-        string+= "<td>" + val['date'] + "</td></tr>";
+        string+= "<td>" + val['quantity'] + "</td>";
+        string+= "<td>" + ( val['quantity'] * val['product_price'] ) + "</td>";
+        string+= "<td>" + val['location'] + "</td>";
+        string+= "<td>" + val['date'].substring(0,19).replace("T"," : ") + "</td></tr>";
        });
 
        string+="</table>";
