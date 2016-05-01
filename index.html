@@ -9,18 +9,7 @@
   <link href="css/bootstrap.css" rel="stylesheet">
   <link href="css/shop-homepage.css" rel="stylesheet">
   <link href="css/order.css" rel="stylesheet">
-  <link href="http://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel="stylesheet">
-  <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
-  <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
-  <!-- Javascript -->
-  <script>
-     $(function() {
-        $( "#datepicker-13" ).datepicker();
-        $( "#datepicker-13" ).datepicker("show");
-     });
-  </script>
 
-     
 </head>
 
 <body>
@@ -46,9 +35,6 @@
           </li>
           <li>
             <a href="/history.html">History</a>
-          </li>
-          <li>
-            <a href="/analytics.html">Analytics</a>
           </li>
         </ul>
       </div>
@@ -84,9 +70,9 @@
             </tbody>
           </table>
           <center>
-            <button class="btn btn-medium btn-primary btn-cons org-submit" id="addRowButton">Add Row</button>&nbsp;
+            <button class="btn btn-medium btn-success btn-cons org-submit" id="addRowButton">Add Row</button>&nbsp;
             <button class="btn btn-medium btn-success btn-cons org-submit" id="submitButton">Submit</button>&nbsp;
-            <button class="btn btn-medium btn-warning btn-cons org-submit" id="clearButton">Reset</button>&nbsp;
+            <button class="btn btn-medium btn-success btn-cons org-submit" id="clearButton">Reset</button>&nbsp;
             <button class="btn btn-medium btn-success btn-cons org-submit" id="historyButton">History</button>
           </center>                
         </div>
@@ -95,22 +81,16 @@
 
       <div class="col-md-3">
         <p class="lead">Smart Shop List</p>
-        <div class="list-group">
-          <a href="#" class="list-group-item">Apples</a>
-          <a href="#" class="list-group-item">Vegetables</a>
-          <a href="#" class="list-group-item">Pulses</a>
-          <a href="#" class="list-group-item">Grains</a>
-          <a href="#" class="list-group-item">Fruit Juices</a>
-          <a href="#" class="list-group-item">Edible Oils</a>
-        </div> 
-        <form method="" action="">
-			<input data-provide="datepicker" data-date-format="dd/mm/yyyy" id="my_date"  value="1/05/2016" type="text" name="my_date" required><br/><br/>        	 
-		  	
-		  	<button class="btn btn-medium btn-primary btn-cons org-submit" id="addRowButton">Analyse</button>&nbsp;
-	    </form>         
+        <div class="list-group" id = "recommendationViewer">
+          <a class="list-group-item">Apples</a>
+          <a class="list-group-item">Vegetables</a>
+          <a class="list-group-item">Pulses</a>
+          <a class="list-group-item">Grains</a>
+          <a class="list-group-item">Fruit Juices</a>
+          <a class="list-group-item">Edible Oils</a>
+        </div>
+        <center> <button class="btn btn-medium btn-success btn-cons org-submit" id="recommendButton">Recommend</button></center>          
       </div>
-      
-      
 
     </div>
 
@@ -142,11 +122,27 @@
 <script type="text/javascript">
   var string;
   var count = 0;
+  
+
   $(document).ready(function(){
     string = "";
-
     getProductList();
   });
+
+
+  $('#recommendButton').click(function() 
+  {
+     $('#recommendationViewer').html("");
+
+    $.get('/fetch_recommendation_list').then(function(d) {
+     jQuery.each(d.data, function(i, val ) 
+     {
+      $('#recommendationViewer').append("<a class='list-group-item'>"+ val['product_name'] +" </a>");
+
+      });
+    });   
+  });
+
 
 
   $('#historyButton').click(function() {
@@ -182,7 +178,7 @@
       count--;
     }
     values+= ']}';
-  
+
 
     $.post("/add-transaction",{values}, function(data){
       alert(data);

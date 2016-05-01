@@ -70,6 +70,7 @@ app.get('/fetch_history', function(req, res)
 app.get('/fetch_product_list', function(req, res) 
 {
 	getSimilarity();
+
 	createDBConnection();
 	connection.query('select product_id,product_name from product;',
 		function(err, rows, fields) 
@@ -83,6 +84,7 @@ app.get('/fetch_product_list', function(req, res)
 			res.send(rows);	
 		});
 	destroyDBConnection();
+
 });
 
 
@@ -163,26 +165,6 @@ function getSimilarity()
 
 	createDBConnection();
 
-	// connection.query("select one.product_id, one.product_name,two.product_cat_type, one.product_price, three.quantity, "+
-	// 	" (one.product_price * three.quantity ) as `Total`, three.date "+
-	// 	" from `test_schema`.`product` one , `test_schema`.`product_category` two, `test_schema`.`transaction` three "+
-	// 	" where one.product_cat_id = two.product_cat_id "+
-	// 	" and three.item_id = one.product_id "+
-	// 	" INTO OUTFILE '127.0.0.1:8081/csv/transactions-data.csv' "+
-	// 	" FIELDS ENCLOSED BY ''  "+
-	// 	" TERMINATED BY ';'  "+
-	// 	" ESCAPED BY ' '  "+
-	// 	" LINES TERMINATED BY '\r\n'",
-
-	// 	function(err, rows, fields) 
-	// 	{
-	// 		if (err)
-	// 		{
-	// 			console.log('Error while performing Query.');
-	// 		//connection.end();
-	// 		}	
-	// 	});
-
 	connection.query("select one.product_id, one.product_name,two.product_cat_type, one.product_price, three.quantity, "+
 		" (one.product_price * three.quantity ) as `Total`, three.date "+
 		" from `test_schema`.`product` one , `test_schema`.`product_category` two, `test_schema`.`transaction` three "+
@@ -198,7 +180,7 @@ function getSimilarity()
 
 			var string = '{"data" : '+ JSON.stringify(rows) +' }';
 
-			console.log(string);
+			//console.log(string);
 
 			  fs.writeFile('dummy.json', string , function(err) {
 			    if (err) throw err;
@@ -209,45 +191,26 @@ function getSimilarity()
 
 		});
 
-
-		
-
-	
-// 	var query = connection.query("select one.product_id, one.product_name,two.product_cat_type, one.product_price, three.quantity, "+
-// 		" (one.product_price * three.quantity ) as `Total`, three.date "+
-// 		" from `test_schema`.`product` one , `test_schema`.`product_category` two, `test_schema`.`transaction` three "+
-// 		" where one.product_cat_id = two.product_cat_id "+
-// 		" and three.item_id = one.product_id ");
-
-// 	query
-// 	.on('error', function(err) {
-//     	// do something when an error happens
-// 	})
-// 	.on('fields', function(fields) {
-// 		processRow(fields);
-// 	})
-
-// 	.on('result', function(row) 
-// 	{
-//    // Pausing the connnection is useful if your processing involves I/O
-//    	connection.pause();
-//    	processRow(row, function (err) 
-//    	{
-//    		connection.resume();
-//    	});
-// 	})
-// 	.on('end', function() {
-
-//     
-
-// });
-	
 	destroyDBConnection();
 }
 
-function processRow (row) {
-		fs.appendFile('data.csv', row.join(';'), function (err) {
-			connection.resume();
-		});
-	}
 
+// function displaySimilarity()
+// {
+
+// 	fs.readFile('output.json', handleFile);
+// }
+// function handleFile(err, data) {
+//     if (err) throw err
+//     obj = JSON.parse(data)
+    
+// }
+
+app.get('/fetch_recommendation_list', function(req, res) 
+{
+	
+	var content = fs.readFileSync("output.json");
+	var jsonContent = JSON.parse(content);
+	console.log(jsonContent);
+ 		res.send(jsonContent);
+});
